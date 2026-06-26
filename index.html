@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comandos GPON - Copiar y Editar</title>
+    <style>
+        /* Reset y estilos generales */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1a3a5c;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #555;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        /* Tarjeta de comando */
+        .command-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid #2c7be5;
+            transition: 0.2s;
+        }
+
+        .command-card:hover {
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .card-header .category {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: #eef3f9;
+            padding: 4px 12px;
+            border-radius: 20px;
+            color: #2c7be5;
+            font-weight: 600;
+        }
+
+        .card-header .description {
+            font-weight: 600;
+            font-size: 1.05rem;
+            color: #1a3a5c;
+            flex: 1;
+            margin: 0 10px;
+        }
+
+        .card-body {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .command-textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #d0d7e2;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            background: #fafbfc;
+            resize: vertical;
+            min-height: 60px;
+            transition: 0.2s;
+            color: #1e293b;
+            line-height: 1.6;
+        }
+
+        .command-textarea:focus {
+            outline: none;
+            border-color: #2c7be5;
+            box-shadow: 0 0 0 3px rgba(44, 123, 229, 0.2);
+            background: white;
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-copy {
+            background: #2c7be5;
+            color: white;
+        }
+        .btn-copy:hover {
+            background: #1a5bbf;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(44, 123, 229, 0.3);
+        }
+
+        .btn-reset {
+            background: #e2e8f0;
+            color: #1a3a5c;
+        }
+        .btn-reset:hover {
+            background: #cbd5e0;
+        }
+
+        .btn-copy-all {
+            background: #0b2b4a;
+            color: white;
+            padding: 12px 30px;
+            margin-bottom: 25px;
+            border-radius: 50px;
+            font-size: 1rem;
+            width: 100%;
+            justify-content: center;
+        }
+        .btn-copy-all:hover {
+            background: #1a3a5c;
+            transform: scale(1.02);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a3a5c;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 500;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 999;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+            .card-header .description {
+                margin: 0;
+                font-size: 0.95rem;
+            }
+            .command-textarea {
+                font-size: 0.85rem;
+                min-height: 80px;
+            }
+            .btn {
+                padding: 8px 16px;
+                font-size: 0.8rem;
+            }
+            h1 {
+                font-size: 1.6rem;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .button-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .btn {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📡 Comandos GPON</h1>
+        <p class="subtitle">Selecciona, edita y copia los comandos que necesites</p>
+
+        <button class="btn btn-copy-all" onclick="copiarTodos()">
+            📋 Copiar TODOS los comandos (uno debajo de otro)
+        </button>
+
+        <div id="commands-container"></div>
+    </div>
+
+    <!-- Toast de notificación -->
+    <div id="toast" class="toast">✅ ¡Copiado!</div>
+
+    <script>
+        // ------------------------------------------------------------
+        // BASE DE DATOS DE COMANDOS (agregar, modificar o quitar según necesites)
+        // ------------------------------------------------------------
+        const comandosData = [
+            {
+                categoria: 'Acceso',
+                descripcion: 'Telnet al equipo',
+                comando: 'system telnet 136.1.1.100'
+            },
+            {
+                categoria: 'Acceso',
+                descripcion: 'Contraseña (escribe al hacer telnet)',
+                comando: 'fibratel@2023CHAO'
+            },
+            {
+                categoria: 'Detección',
+                descripcion: 'DETECTAR EQUIPO - ONUs no configuradas',
+                comando: 'show gpon onu uncfg'
+            },
+            {
+                categoria: 'Detección',
+                descripcion: 'VER PUERTOS DISPONIBLES',
+                comando: 'show running-config interface gpon-olt_1/2/13'
+            },
+            {
+                categoria: 'Borrado',
+                descripcion: 'BORRAR ONU (ejemplo puerto 12, ONU 25)',
+                comando: `confi ter
+        interface gpon-olt_1/2/12
+        no onu 25
+        exit`
+            },
+            {
+                categoria: 'Detección',
+                descripcion: 'VER PUERTO CON SERIE (cambia la serie)',
+                comando: 'show gpon onu by sn OPTI36A0A22D'
+            },
+            {
+                categoria: 'Reinicio',
+                descripcion: 'REINICIAR ONU (ejemplo 1/2/9:3)',
+                comando: `confi ter
+        pon-onu-mng gpon-onu_1/2/9:3
+        reboot
+        exit
+        exit`
+            },
+            {
+                categoria: 'Detección',
+                descripcion: 'VER LA DESCRIPCIÓN DE LA ONU',
+                comando: 'sho run int gpon-onu_1/2/5:1'
+            },
+            {
+                categoria: 'Detección',
+                descripcion: 'VER POTENCIA DE LA ONU',
+                comando: 'sho pon power attenuation gpon-onu_1/2/4:16'
+            },
+            {
+                categoria: 'Detección',
+                descripcion: 'MOSTRAR MÁS DETALLES EN LA ONU',
+                comando: 'sho gpon onu detail-info gpon-onu_1/2/1:6'
+            },
+            {
+                categoria: 'Detección',
+                descripcion: 'DETALLA EL ESTADO DE TODAS LAS ONUS (LOS, WORKING, FUERA DE LÍNEA)',
+                comando: 'Show gpon onu state'
+            },
+            {
+                categoria: 'Detección',
+                descripcion: 'VISUALIZA EL ESTADO DEL EQUIPO CON POTENCIA (varios ejemplos)',
+                comando: `show pon power onu-rx gpon-olt_1/2/9
+        show pon power onu-rx gpon-olt_1/5/16
+        show gpon onu state gpon-olt_1/2/12`
+            },
+            {
+                categoria: 'CATV',
+                descripcion: 'ACTIVAR CATV (ejemplo 1/2/13:17)',
+                comando: `confi ter
+        pon-onu-mng gpon-onu_1/2/13:17
+        interface video video_0/1 state unlock
+        exit
+        exit
+        wr`
+            },
+            {
+                categoria: 'CATV',
+                descripcion: 'SUSPENDER CATV (ejemplo 1/2/3:10)',
+                comando: `confi ter
+        pon-onu-mng gpon-onu_1/2/3:10
+        interface video video_0/1 state lock
+        exit
+        exit
+        wr`
+            },
+            {
+                categoria: 'Detección',
+                descripcion: 'VISUALIZAR LAS SERIES DE UN PUERTO',
+                comando: 'show gpon baseinfo gpon-olt_1/12/2'
+            }
+        ];
+
+        // ------------------------------------------------------------
+        // RENDERIZAR LOS COMANDOS EN LA PÁGINA
+        // ------------------------------------------------------------
+        const container = document.getElementById('commands-container');
+
+        function renderCommands() {
+            container.innerHTML = '';
+            comandosData.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'command-card';
+
+                // Cabecera
+                const header = document.createElement('div');
+                header.className = 'card-header';
+                header.innerHTML = `
+                    <span class="category">${item.categoria}</span>
+                    <span class="description">${item.descripcion}</span>
+                `;
+
+                // Cuerpo
+                const body = document.createElement('div');
+                body.className = 'card-body';
+
+                // Textarea con el comando (editable)
+                const textarea = document.createElement('textarea');
+                textarea.className = 'command-textarea';
+                textarea.value = item.comando;
+                textarea.id = `cmd-${index}`;
+                textarea.spellcheck = false;
+
+                // Botones
+                const btnGroup = document.createElement('div');
+                btnGroup.className = 'button-group';
+
+                const btnCopy = document.createElement('button');
+                btnCopy.className = 'btn btn-copy';
+                btnCopy.innerHTML = '📋 Copiar';
+                btnCopy.addEventListener('click', () => copiarComando(index));
+
+                const btnReset = document.createElement('button');
+                btnReset.className = 'btn btn-reset';
+                btnReset.innerHTML = '↩️ Restablecer';
+                btnReset.addEventListener('click', () => resetearComando(index));
+
+                btnGroup.appendChild(btnCopy);
+                btnGroup.appendChild(btnReset);
+
+                body.appendChild(textarea);
+                body.appendChild(btnGroup);
+                card.appendChild(header);
+                card.appendChild(body);
+                container.appendChild(card);
+            });
+        }
+
+        // ------------------------------------------------------------
+        // FUNCIONES DE COPIADO Y RESET
+        // ------------------------------------------------------------
+        function copiarComando(index) {
+            const textarea = document.getElementById(`cmd-${index}`);
+            if (!textarea) return;
+            const texto = textarea.value;
+            navigator.clipboard.writeText(texto).then(() => {
+                mostrarToast('✅ ¡Comando copiado!');
+            }).catch(() => {
+                // Fallback para navegadores sin clipboard API
+                textarea.select();
+                document.execCommand('copy');
+                mostrarToast('✅ ¡Comando copiado!');
+            });
+        }
+
+        function resetearComando(index) {
+            const textarea = document.getElementById(`cmd-${index}`);
+            if (!textarea) return;
+            const original = comandosData[index].comando;
+            textarea.value = original;
+            mostrarToast('↩️ Comando restablecido');
+        }
+
+        function copiarTodos() {
+            let todos = '';
+            comandosData.forEach(item => {
+                todos += item.comando + '\n\n';
+            });
+            navigator.clipboard.writeText(todos).then(() => {
+                mostrarToast('📋 ¡Todos los comandos copiados!');
+            }).catch(() => {
+                // Fallback
+                const temp = document.createElement('textarea');
+                temp.value = todos;
+                document.body.appendChild(temp);
+                temp.select();
+                document.execCommand('copy');
+                document.body.removeChild(temp);
+                mostrarToast('📋 ¡Todos los comandos copiados!');
+            });
+        }
+
+        // ------------------------------------------------------------
+        // TOAST (notificación emergente)
+        // ------------------------------------------------------------
+        let toastTimeout;
+
+        function mostrarToast(mensaje) {
+            const toast = document.getElementById('toast');
+            toast.textContent = mensaje;
+            toast.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // ------------------------------------------------------------
+        // INICIALIZAR
+        // ------------------------------------------------------------
+        renderCommands();
+    </script>
+</body>
+</html>
