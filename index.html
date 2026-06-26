@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comandos GPON - Copiar y Editar</title>
+    <title>Comandos GPON - Matrix</title>
     <style>
-        /* Reset y estilos generales */
+        /* ----- RESET Y ESTILOS GENERALES ----- */
         * {
             margin: 0;
             padding: 0;
@@ -14,43 +14,98 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f0f2f5;
-            padding: 20px;
+            background: black;
             color: #333;
+            min-height: 100vh;
+            position: relative;
         }
 
+        /* Canvas de Matrix: fondo */
+        #matrix-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+            background: black;
+        }
+
+        /* ---- MASCOTA (esquina superior derecha, sin bordes) ---- */
+        .mascota {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 150px;
+            height: auto;
+            /* Elimina cualquier posible borde */
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            /* Para que no tenga fondo ni padding */
+            background: transparent !important;
+            /* Permitir que el puntero pase a través si se quiere */
+            pointer-events: none;
+        }
+
+        /* Ajuste para móviles */
+        @media (max-width: 600px) {
+            .mascota {
+                max-width: 100px;
+                top: 10px;
+                right: 10px;
+            }
+        }
+
+        /* Contenedor principal: se superpone al canvas */
         .container {
+            position: relative;
+            z-index: 1;
             max-width: 1000px;
             margin: 0 auto;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.75);
+            border-radius: 20px;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 0 40px rgba(0, 255, 0, 0.15);
+            border: 1px solid rgba(0, 255, 0, 0.2);
         }
 
         h1 {
             text-align: center;
-            color: #1a3a5c;
+            color: #0f0;
             margin-bottom: 10px;
-            font-size: 2rem;
+            font-size: 2.4rem;
+            text-shadow: 0 0 20px #0f0, 0 0 40px #0f0;
+            font-weight: 700;
+            letter-spacing: 2px;
         }
 
         .subtitle {
             text-align: center;
-            color: #555;
+            color: #aaa;
             margin-bottom: 30px;
             font-size: 1.1rem;
+            text-shadow: 0 0 10px #0f0;
         }
 
-        /* Tarjeta de comando */
+        /* Tarjeta de comando (estilo oscuro) */
         .command-card {
-            background: white;
+            background: rgba(20, 20, 20, 0.9);
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 20px rgba(0, 255, 0, 0.1);
             padding: 20px;
             margin-bottom: 20px;
-            border-left: 5px solid #2c7be5;
-            transition: 0.2s;
+            border-left: 5px solid #0f0;
+            transition: 0.3s;
         }
 
         .command-card:hover {
-            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+            box-shadow: 0 6px 30px rgba(0, 255, 0, 0.2);
+            border-left-color: #ff0;
         }
 
         .card-header {
@@ -65,19 +120,21 @@
             font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            background: #eef3f9;
+            background: rgba(0, 255, 0, 0.15);
             padding: 4px 12px;
             border-radius: 20px;
-            color: #2c7be5;
+            color: #0f0;
             font-weight: 600;
+            border: 1px solid rgba(0, 255, 0, 0.3);
         }
 
         .card-header .description {
             font-weight: 600;
             font-size: 1.05rem;
-            color: #1a3a5c;
+            color: #0f0;
             flex: 1;
             margin: 0 10px;
+            text-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
         }
 
         .card-body {
@@ -89,23 +146,24 @@
         .command-textarea {
             width: 100%;
             padding: 12px 15px;
-            border: 1px solid #d0d7e2;
+            border: 1px solid #2a5a2a;
             border-radius: 8px;
             font-family: 'Courier New', monospace;
             font-size: 0.95rem;
-            background: #fafbfc;
+            background: #0a0f0a;
             resize: vertical;
             min-height: 60px;
             transition: 0.2s;
-            color: #1e293b;
+            color: #bfd9bf;
             line-height: 1.6;
         }
 
         .command-textarea:focus {
             outline: none;
-            border-color: #2c7be5;
-            box-shadow: 0 0 0 3px rgba(44, 123, 229, 0.2);
-            background: white;
+            border-color: #0f0;
+            box-shadow: 0 0 0 3px rgba(0, 255, 0, 0.3);
+            background: #111;
+            color: #fff;
         }
 
         .button-group {
@@ -129,36 +187,57 @@
         }
 
         .btn-copy {
-            background: #2c7be5;
-            color: white;
+            background: #0f0;
+            color: #000;
         }
         .btn-copy:hover {
-            background: #1a5bbf;
+            background: #8f8;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(44, 123, 229, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 255, 0, 0.4);
         }
 
         .btn-reset {
-            background: #e2e8f0;
-            color: #1a3a5c;
+            background: #444;
+            color: #ccc;
         }
         .btn-reset:hover {
-            background: #cbd5e0;
+            background: #666;
+            color: #fff;
         }
 
         .btn-copy-all {
-            background: #0b2b4a;
-            color: white;
+            background: #0f0;
+            color: #000;
             padding: 12px 30px;
             margin-bottom: 25px;
             border-radius: 50px;
             font-size: 1rem;
             width: 100%;
             justify-content: center;
+            font-weight: 700;
         }
         .btn-copy-all:hover {
-            background: #1a3a5c;
+            background: #8f8;
             transform: scale(1.02);
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
+        }
+
+        /* Footer con el nombre en rojo negrita */
+        .footer {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 30px 20px 20px;
+            margin-top: 30px;
+            color: #ff0000;
+            font-weight: 900;
+            font-size: 2.2rem;
+            text-shadow: 0 0 20px #ff0000, 0 0 40px #ff0000, 0 0 80px #ff0000;
+            letter-spacing: 4px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 16px;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 0, 0, 0.3);
         }
 
         .toast {
@@ -166,12 +245,12 @@
             bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
-            background: #1a3a5c;
-            color: white;
+            background: #0f0;
+            color: #000;
             padding: 12px 24px;
             border-radius: 50px;
-            font-weight: 500;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            font-weight: 700;
+            box-shadow: 0 8px 24px rgba(0, 255, 0, 0.4);
             opacity: 0;
             transition: opacity 0.3s;
             pointer-events: none;
@@ -183,6 +262,9 @@
 
         /* Responsive */
         @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
             .card-header {
                 flex-direction: column;
                 align-items: flex-start;
@@ -201,7 +283,11 @@
                 font-size: 0.8rem;
             }
             h1 {
-                font-size: 1.6rem;
+                font-size: 1.8rem;
+            }
+            .footer {
+                font-size: 1.5rem;
+                padding: 20px 10px;
             }
         }
 
@@ -217,9 +303,22 @@
     </style>
 </head>
 <body>
+
+    <!-- CANVAS DE MATRIX (fondo) -->
+    <canvas id="matrix-canvas"></canvas>
+
+    <!-- MASCOTA (esquina superior derecha, SIN BORDES) -->
+    <img 
+        src="https://i.postimg.cc/LX7JH4MJ/5dd1c327455411eeb92db29646062438-removebg-preview.png" 
+        alt="Mascota" 
+        class="mascota"
+        loading="lazy"
+    >
+
+    <!-- CONTENIDO PRINCIPAL -->
     <div class="container">
         <h1>📡 Comandos GPON</h1>
-        <p class="subtitle">Selecciona, edita y copia los comandos que necesites</p>
+        <p class="subtitle">✦ Edita, copia y ejecuta tus comandos en la Matrix ✦</p>
 
         <button class="btn btn-copy-all" onclick="copiarTodos()">
             📋 Copiar TODOS los comandos (uno debajo de otro)
@@ -228,12 +327,70 @@
         <div id="commands-container"></div>
     </div>
 
-    <!-- Toast de notificación -->
+    <!-- FOOTER con el nombre en rojo negrita -->
+    <div class="footer">
+        DAVID JESUS ZEGARRA
+    </div>
+
+    <!-- TOAST de notificación -->
     <div id="toast" class="toast">✅ ¡Copiado!</div>
 
     <script>
         // ------------------------------------------------------------
-        // BASE DE DATOS DE COMANDOS (agregar, modificar o quitar según necesites)
+        // 1. ANIMACIÓN MATRIX (canvas)
+        // ------------------------------------------------------------
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let width, height;
+        let columns, drops;
+
+        function resizeCanvas() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+
+            columns = Math.floor(width / 20);
+            drops = Array(columns).fill(1);
+        }
+
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%&*()_+{}[]|;:,.<>?/";
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, width, height);
+
+            ctx.fillStyle = '#0f0';
+            ctx.font = '20px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                const char = chars[Math.floor(Math.random() * chars.length)];
+                const x = i * 20;
+                const y = drops[i] * 20;
+
+                if (Math.random() > 0.98) {
+                    ctx.fillStyle = '#fff';
+                } else {
+                    ctx.fillStyle = '#0f0';
+                }
+
+                ctx.fillText(char, x, y);
+
+                if (y > height && Math.random() > 0.975) {
+                    drops[i] = 1;
+                }
+                drops[i]++;
+            }
+        }
+
+        setInterval(drawMatrix, 50);
+
+        // ------------------------------------------------------------
+        // 2. BASE DE DATOS DE COMANDOS
         // ------------------------------------------------------------
         const comandosData = [
             {
@@ -330,10 +487,9 @@
                 descripcion: 'VISUALIZAR LAS SERIES DE UN PUERTO',
                 comando: 'show gpon baseinfo gpon-olt_1/12/2'
             },
-            // ----- NUEVO COMANDO AGREGADO -----
             {
                 categoria: 'Configuración ONU',
-                descripcion: 'Crear ONU y configurar servicios verificando la disponibilidad del puerto.',
+                descripcion: 'Crear ONU y configurar servicios (puerto 4, ONU 16)',
                 comando: `confi ter
         interface gpon-olt_1/2/4
         onu 16 type ZTE-F625 sn OPTI36A1C185
@@ -356,7 +512,7 @@
         ];
 
         // ------------------------------------------------------------
-        // RENDERIZAR LOS COMANDOS EN LA PÁGINA
+        // 3. RENDERIZAR COMANDOS
         // ------------------------------------------------------------
         const container = document.getElementById('commands-container');
 
@@ -366,7 +522,6 @@
                 const card = document.createElement('div');
                 card.className = 'command-card';
 
-                // Cabecera
                 const header = document.createElement('div');
                 header.className = 'card-header';
                 header.innerHTML = `
@@ -374,18 +529,15 @@
                     <span class="description">${item.descripcion}</span>
                 `;
 
-                // Cuerpo
                 const body = document.createElement('div');
                 body.className = 'card-body';
 
-                // Textarea con el comando (editable)
                 const textarea = document.createElement('textarea');
                 textarea.className = 'command-textarea';
                 textarea.value = item.comando;
                 textarea.id = `cmd-${index}`;
                 textarea.spellcheck = false;
 
-                // Botones
                 const btnGroup = document.createElement('div');
                 btnGroup.className = 'button-group';
 
@@ -411,7 +563,7 @@
         }
 
         // ------------------------------------------------------------
-        // FUNCIONES DE COPIADO Y RESET
+        // 4. FUNCIONES DE COPIADO / RESET
         // ------------------------------------------------------------
         function copiarComando(index) {
             const textarea = document.getElementById(`cmd-${index}`);
@@ -420,7 +572,6 @@
             navigator.clipboard.writeText(texto).then(() => {
                 mostrarToast('✅ ¡Comando copiado!');
             }).catch(() => {
-                // Fallback para navegadores sin clipboard API
                 textarea.select();
                 document.execCommand('copy');
                 mostrarToast('✅ ¡Comando copiado!');
@@ -430,8 +581,7 @@
         function resetearComando(index) {
             const textarea = document.getElementById(`cmd-${index}`);
             if (!textarea) return;
-            const original = comandosData[index].comando;
-            textarea.value = original;
+            textarea.value = comandosData[index].comando;
             mostrarToast('↩️ Comando restablecido');
         }
 
@@ -443,7 +593,6 @@
             navigator.clipboard.writeText(todos).then(() => {
                 mostrarToast('📋 ¡Todos los comandos copiados!');
             }).catch(() => {
-                // Fallback
                 const temp = document.createElement('textarea');
                 temp.value = todos;
                 document.body.appendChild(temp);
@@ -455,7 +604,7 @@
         }
 
         // ------------------------------------------------------------
-        // TOAST (notificación emergente)
+        // 5. TOAST
         // ------------------------------------------------------------
         let toastTimeout;
 
@@ -470,7 +619,7 @@
         }
 
         // ------------------------------------------------------------
-        // INICIALIZAR
+        // 6. INICIAR
         // ------------------------------------------------------------
         renderCommands();
     </script>
